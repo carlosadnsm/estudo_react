@@ -6,7 +6,6 @@ class ProductSerializer(serializers.ModelSerializer):
         model = Product
         fields = ['id', 'name', 'price']
 
-    # Validações extras
     def validate_name(self, value):
         if not value.strip():
             raise serializers.ValidationError("O nome do produto não pode ser vazio.")
