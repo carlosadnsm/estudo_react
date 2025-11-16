@@ -161,6 +161,7 @@ Para arrumar foi necessario mockar a api ao inves de mockar o front, depois diss
    Duration  11.40s (transform 160ms, setup 141ms, collect 1.36s, tests 8.75s, environment 962ms, prepare 19ms)
 
 para rodar precisa entrar no dir do front e rodar os comandos dee teste
+
 cd C:\Users\carlo\dev\estudo_react\frontend
 npm test
 npm test -- --run
