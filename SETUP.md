@@ -67,3 +67,23 @@ O frontend estará disponível em `http://localhost:5173`
 - `GET /api/products/{id}/` - Obter detalhes de um produto
 - `PUT /api/products/{id}/` - Atualizar um produto
 - `DELETE /api/products/{id}/` - Deletar um produto
+
+## A partir da questao 2:
+- Para rodar os testes fazer: 
+'
+cd backend
+.\venv\Scripts\activate
+python manage.py test products
+'
+Exemplo de retorno: 
+
+(venv) PS C:\Users\carlo\dev\estudo_react\backend> python manage.py test products
+Found 13 test(s).
+Creating test database for alias 'default'...
+System check identified no issues (0 silenced).
+.............
+----------------------------------------------------------------------
+Ran 13 tests in 0.043s
+
+OK
+Destroying test database for alias 'default'...
