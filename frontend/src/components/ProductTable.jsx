@@ -192,6 +192,18 @@ export default function ProductTable() {
     setShowAddDialog(false);
   };
 
+  const dialogHeader = (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+      <span>{editingId ? 'Editar Produto' : 'Novo Produto'}</span>
+      <Button 
+        icon="pi pi-times" 
+        className="p-button-text p-button-rounded" 
+        onClick={() => { setShowAddDialog(false); setEditingId(null); }}
+        style={{ width: '2rem', height: '2rem' }}
+      />
+    </div>
+  );
+
   const dialogFooter = (
     <div>
       <Button label="Cancelar" icon="pi pi-times" className="p-button-text" onClick={() => { setShowAddDialog(false); setEditingId(null); }} />
@@ -222,7 +234,16 @@ export default function ProductTable() {
         />
       </div>
 
-      <Dialog header="Novo Produto" visible={showAddDialog} style={{ width: '480px' }} modal onHide={() => setShowAddDialog(false)} footer={dialogFooter}>
+      <Dialog 
+        header={dialogHeader}
+        visible={showAddDialog} 
+        style={{ width: '480px' }} 
+        modal 
+        closable={false}
+        closeOnEscape={true}
+        onHide={() => { setShowAddDialog(false); setEditingId(null); }} 
+        footer={dialogFooter}
+      >
         <div className="p-fluid">
           <div className="p-field">
             <label htmlFor="name">Nome *</label>
