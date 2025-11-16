@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Button } from 'primereact/button';
@@ -6,14 +7,24 @@ import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { InputNumber } from 'primereact/inputnumber';
 import { InputTextarea } from 'primereact/inputtextarea';
-import { productService } from '../services/api';
+import {
+  fetchProducts,
+  addProduct as addProductThunk,
+  updateProduct as updateProductThunk,
+  deleteProduct as deleteProductThunk,
+  selectProducts,
+  selectProductsStatus,
+} from '../features/products/productsSlice';
 import 'primereact/resources/themes/lara-light-blue/theme.css';
 import 'primereact/resources/primereact.css';
 import 'primeicons/primeicons.css';
 
 export default function ProductTable() {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const dispatch = useDispatch();
+  const products = useSelector(selectProducts);
+  const status = useSelector(selectProductsStatus);
+  const loading = status === 'loading';
+
   const [sortField, setSortField] = useState(null);
   const [sortOrder, setSortOrder] = useState(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -22,42 +33,14 @@ export default function ProductTable() {
   const [errors, setErrors] = useState({ name: false, price: false });
 
   useEffect(() => {
-    loadProducts();
-  }, []);
-
-  const loadProducts = async () => {
-    setLoading(true);
-    try {
-      const response = await productService.getAll();
-      setProducts(response.data);
-    } catch (error) {
-      console.error('Erro ao carregar produtos:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    dispatch(fetchProducts());
+  }, [dispatch]);
 
   const actionBodyTemplate = (rowData) => {
     return (
       <div className="flex gap-2">
-        <Button
-          icon="pi pi-pencil"
-          rounded
-          outlined
-          className="p-button-warning"
-          onClick={() => handleEdit(rowData)}
-          tooltip="Editar"
-          tooltipPosition="top"
-        />
-        <Button
-          icon="pi pi-trash"
-          rounded
-          outlined
-          severity="danger"
-          onClick={() => handleDelete(rowData)}
-          tooltip="Deletar"
-          tooltipPosition="top"
-        />
+        <Button icon="pi pi-pencil" rounded outlined className="p-button-warning" onClick={() => handleEdit(rowData)} tooltip="Editar" tooltipPosition="top" />
+        <Button icon="pi pi-trash" rounded outlined severity="danger" onClick={() => handleDelete(rowData)} tooltip="Deletar" tooltipPosition="top" />
       </div>
     );
   };
@@ -76,20 +59,7 @@ export default function ProductTable() {
 
   const handleDelete = async (product) => {
     if (!window.confirm('Deseja deletar este produto?')) return;
-
-    try {
-      if (product && product.id) {
-        await productService.delete(product.id);
-        setProducts((prev) => prev.filter((p) => p.id !== product.id));
-        return;
-      }
-    } catch (error) {
-      console.warn('Erro ao deletar via API, removendo localmente se existir:', error);
-      setProducts((prev) => prev.filter((p) => p.id !== product.id));
-      return;
-    }
-
-    setProducts((prev) => prev.filter((p) => p.id !== product.id));
+    if (product?.id) dispatch(deleteProductThunk(product.id));
   };
 
   const handleAddProduct = () => {
@@ -97,98 +67,65 @@ export default function ProductTable() {
     setShowAddDialog(true);
   };
 
-  const priceBodyTemplate = (rowData) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(rowData.price);
-  };
+  const priceBodyTemplate = (rowData) =>
+    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(rowData.price);
 
-  const descriptionBodyTemplate = (rowData) => {
-    if (!rowData.description) return '-';
-    return rowData.description;
-  };
+  const descriptionBodyTemplate = (rowData) => (rowData.description ? rowData.description : '-');
 
-  const stockBodyTemplate = (rowData) => {
-    return rowData.stock ?? 0;
-  };
+  const stockBodyTemplate = (rowData) => rowData.stock ?? 0;
 
   const createdAtBodyTemplate = (rowData) => {
     if (!rowData.created_at) return '-';
     try {
-      const dt = new Date(rowData.created_at);
-      return dt.toLocaleString('pt-BR');
-    } catch (e) {
+      return new Date(rowData.created_at).toLocaleString('pt-BR');
+    } catch {
       return rowData.created_at;
     }
   };
 
   useEffect(() => {
-    if (!showAddDialog) {
-      setNewProduct({ name: '', price: null, description: '', stock: 0 });
-    }
+    if (!showAddDialog) setNewProduct({ name: '', price: null, description: '', stock: 0 });
   }, [showAddDialog]);
-
-  useEffect(() => {
-    console.log('Produtos atualizados:', products);
-  }, [products]);
 
   const onNewProductChange = (field, value) => {
     setNewProduct((prev) => ({ ...prev, [field]: value }));
-    if (field === 'name') {
-      if (typeof value === 'string' && value.trim() !== '') setErrors((e) => ({ ...e, name: false }));
-    }
-    if (field === 'price') {
-      if (value != null && value >= 0) setErrors((e) => ({ ...e, price: false }));
-    }
+    if (field === 'name' && typeof value === 'string' && value.trim() !== '') setErrors((e) => ({ ...e, name: false }));
+    if (field === 'price' && value != null && value >= 0) setErrors((e) => ({ ...e, price: false }));
   };
 
   const saveNewProduct = () => {
     const nameInvalid = !newProduct.name || (typeof newProduct.name === 'string' && newProduct.name.trim() === '');
     const priceInvalid = newProduct.price == null || newProduct.price < 0;
-
     if (nameInvalid || priceInvalid) {
       setErrors({ name: nameInvalid, price: priceInvalid });
       return;
     }
+
     if (editingId) {
-      const updated = {
-        id: editingId,
-        name: newProduct.name,
-        price: newProduct.price,
-        description: newProduct.description,
-        stock: newProduct.stock ?? 0,
-        created_at: new Date().toISOString(),
-      };
-
-      try {
-        productService.update(editingId, updated).then((resp) => {
-          const respData = resp.data ?? updated;
-          setProducts((prev) => prev.map((p) => (p.id === editingId ? respData : p)));
-        }).catch(() => {
-          setProducts((prev) => prev.map((p) => (p.id === editingId ? updated : p)));
-        });
-      } catch (e) {
-        setProducts((prev) => prev.map((p) => (p.id === editingId ? updated : p)));
-      }
-
+      dispatch(
+        updateProductThunk({
+          id: editingId,
+          data: {
+            name: newProduct.name,
+            price: newProduct.price,
+            description: newProduct.description,
+            stock: newProduct.stock ?? 0,
+          },
+        })
+      );
       setEditingId(null);
       setShowAddDialog(false);
       return;
     }
-    //apenas local
-    const created = new Date().toISOString();
-    const nextId = products && products.length ? Math.max(...products.map(p => p.id || 0)) + 1 : 1;
-    const productToAdd = {
-      id: nextId,
-      name: newProduct.name,
-      price: newProduct.price,
-      description: newProduct.description,
-      stock: newProduct.stock ?? 0,
-      created_at: created,
-    };
 
-    setProducts((prev) => [productToAdd, ...prev]);
+    dispatch(
+      addProductThunk({
+        name: newProduct.name,
+        price: newProduct.price,
+        description: newProduct.description,
+        stock: newProduct.stock ?? 0,
+      })
+    );
     setShowAddDialog(false);
   };
 
@@ -213,35 +150,31 @@ export default function ProductTable() {
             setSortOrder(null);
           }}
         />
-
-        <Button
-          label="Novo Produto"
-          icon="pi pi-plus"
-          className="p-button-success"
-          onClick={handleAddProduct}
-        />
+        <Button label="Novo Produto" icon="pi pi-plus" className="p-button-success" onClick={handleAddProduct} />
       </div>
 
-      <Dialog header="Novo Produto" visible={showAddDialog} style={{ width: '480px' }} modal onHide={() => setShowAddDialog(false)} footer={dialogFooter}>
+      <Dialog
+        header={editingId ? 'Editar Produto' : 'Novo Produto'}
+        visible={showAddDialog}
+        style={{ width: '480px' }}
+        modal
+        onHide={() => setShowAddDialog(false)}
+        footer={dialogFooter}
+      >
         <div className="p-fluid">
           <div className="p-field">
             <label htmlFor="name">Nome *</label>
-            <InputText 
-              id="name" 
-              value={newProduct.name} 
-              onChange={(e) => onNewProductChange('name', e.target.value)} 
-              className={errors.name ? 'p-invalid' : ''}
-            />
+            <InputText id="name" value={newProduct.name} onChange={(e) => onNewProductChange('name', e.target.value)} className={errors.name ? 'p-invalid' : ''} />
             {errors.name && <small className="p-error">Nome é obrigatório.</small>}
           </div>
           <div className="p-field">
             <label htmlFor="price">Preço *</label>
-            <InputNumber 
-              id="price" 
-              value={newProduct.price} 
-              onValueChange={(e) => onNewProductChange('price', e.value)} 
-              mode="currency" 
-              currency="BRL" 
+            <InputNumber
+              id="price"
+              value={newProduct.price}
+              onValueChange={(e) => onNewProductChange('price', e.value)}
+              mode="currency"
+              currency="BRL"
               locale="pt-BR"
               className={errors.price ? 'p-invalid' : ''}
               min={0}
@@ -250,7 +183,7 @@ export default function ProductTable() {
           </div>
           <div className="p-field">
             <label htmlFor="stock">Estoque</label>
-            <InputNumber id="stock" value={newProduct.stock} onValueChange={(e) => onNewProductChange('stock', e.value)}  />
+            <InputNumber id="stock" value={newProduct.stock} onValueChange={(e) => onNewProductChange('stock', e.value)} />
           </div>
           <div className="p-field">
             <label htmlFor="description">Descrição</label>
