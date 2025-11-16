@@ -87,3 +87,14 @@ Ran 13 tests in 0.043s
 
 OK
 Destroying test database for alias 'default'...
+
+# A partir da questao 4:
+POST: http://127.0.0.1:8000/api/auth/login/
+{ "username": "seu_usuario", "password": "sua_senha" }
+
+retorna os tokens de acesso e de refresh:
+
+{
+    "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2Mzg2NjMyMywiaWF0IjoxNzYzMjYxNTIzLCJqdGkiOiI4NGVkYjNjODJmODU0MjYzYjAxMWFkMGE0OTY0MDZhNyIsInVzZXJfaWQiOiIyIn0.dGmh0sSEzAaPEzO-5O3Zol6ULKOtY8C_b-C5g5LBkkQ",
+    "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzYzMjY1MTIzLCJpYXQiOjE3NjMyNjE1MjMsImp0aSI6Ijk5ZTYxMDhhMGU5YTRmMThiYTNmYzVmZDVjMTI1Yzk0IiwidXNlcl9pZCI6IjIifQ.Zpu3j-3hhD4ozqby8SsBI5hDc-5u3EcSn62fQksez7A"
+}
