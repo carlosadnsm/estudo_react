@@ -28,6 +28,13 @@ Este repositório contém a solução para o teste técnico utilizando **React**
   - `python manage.py makemigrations`
   - `python manage.py migrate`
 
+- Para rodar o servidor: 
+
+    .\venv\Scripts\activate 
+
+    e depois 
+
+    python manage.py runserver
 ---
 
 ## Next Steps
