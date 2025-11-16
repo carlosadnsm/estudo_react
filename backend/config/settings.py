@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'products',
     'rest_framework_simplejwt',
+    'products.apps.ProductsConfig',
 ]
 
 MIDDLEWARE = [
@@ -78,6 +79,15 @@ SIMPLE_JWT = {
 }
 
 ROOT_URLCONF = 'config.urls'
+
+CACHE_TTL = 60 * 10
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'products-cache',
+    }
+}
 
 TEMPLATES = [
     {

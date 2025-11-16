@@ -4,42 +4,10 @@ Este repositório contém a solução para o teste técnico utilizando **React**
 
 ---
 
-### 1. Configuração inicial
-- Instalação do **Python 3.14** e verificação do `pip`.
-- Criação e ativação de um **ambiente virtual (venv)**.
-- Instalação das dependências iniciais:
-  - `django`
-  - `djangorestframework`
+### 1. Como invalidar o Cache se os produtos forem atualizados?
 
-### 2. Estrutura do projeto
-- Criação da pasta raiz `agro-e/` com subpastas:
-  - `backend/` → projeto Django
-  - `frontend/` → aplicação React (a ser criada)
-  - `docs/` → documentação
-- Inicialização do repositório Git e criação de `.gitignore`.
+O cache é feito no método list do ProductViewSet. Quando chega um GET em /api/products, o código tenta ler a chave products:list no cache. Se existir, retorna o conteúdo diretamente. Se não existir, busca os produtos no banco, serializa, grava no cache com o TTL definido (10 minutos) e devolve a resposta. Assim os próximos GET usam o dado em cache até expirar.
 
-### 3. Backend (Django)
-- Criação do projeto Django chamado **core**.
-- Criação do app **products**.
-- Registro do app `products` e do `rest_framework` em `INSTALLED_APPS`.
-- Implementação do modelo **Product**:
-  - Campos: `name` (CharField) e `price` (DecimalField).
-- Execução das migrações:
-  - `python manage.py makemigrations`
-  - `python manage.py migrate`
+A invalidação acontece sempre que há escrita. Após criar, atualizar, atualizar parcialmente ou deletar um produto, o ViewSet chama cache.delete('products:list'). Isso remove a chave e garante que o próximo GET recalcule e regrave o cache atualizado.
 
-- Para rodar o servidor: 
-
-    .\venv\Scripts\activate 
-
-    e depois 
-
-    python manage.py runserver
----
-
-## Next Steps
-- Implementar **serializers**, **viewsets** e **rotas** para expor os produtos via `/api/products/`.
-- Criar o front-end em React para consumir a API.
-- Adicionar testes unitários e documentação detalhada.
-
----
+Para mudanças feitas fora da API (por exemplo, no Django /admin ou scripts), usa-se sinais do Django. Registre handlers para post_save e post_delete do modelo Product que executam cache.delete('products:list'). Esses signals devem ficar em products/signals.py e ser carregados no método ready do AppConfig (products/apps.py). Com isso, qualquer alteração em produtos, por qualquer caminho, derruba a chave e força a reconstrução no próximo GET.
