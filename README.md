@@ -13,8 +13,20 @@ npm run dev
 
 ---
 
-### 1. A aplicação React apresenta lentidão ao renderizar listas com mais de 500 produtos.
+### 1. Sua aplicação em Django precisa de um sistema de monitoramento e geração de logs para rastrear
+erros em produção.
 Tarefas:
-Explique e implemente uma solução para melhorar a performance da renderização
+Configure o Django para enviar logs detalhados para um sistema externo (ex.: Sentry ou ELK Stack)
 
-O DataTable que eu ja estava usando do PrimeReact ja tem virtualizacao interna com o virtualScroll, vou apenas alterar ele, pois se for refazer com React-Window, perderei as features da tabela que ja existem no PrimeReact, como ordencao, template... Alem do fato que a UX fica melhor pois o scroll infinito é mais natural e suave do que paginação, fora que fica um visual mais clean sem o footer da tabela. A combinação de cache backend com virtual scroll frontend é muito boa porque o backend com cache de dez minutos evita queries repetidas ao banco enquanto o frontend com virtual scroll renderiza apenas o necessário, resultando em experiência fluida mesmo com milhares de produtos.
+A configuração do Sentry no Django foi feita através do sentry_sdk direto no backend/config/settings.py com integração específica para Django e logging. O DSN (Data Source Name) do Sentry vem de variável de ambiente para segurança, permitindo diferentes configurações por ambiente (development, staging, production). A taxa de amostragem de performance foi definida em 10% para produção (otimização de custos) e 100% para desenvolvimento (debug completo). O send_default_pii está ativado para enviar informações de usuário junto com os erros, facilitando a reprodução de bugs. O sistema captura automaticamente todas as exceções não tratadas, erros de requisições HTTP, queries lentas do banco de dados, e transações de performance.
+
+Para isso foi necessario definir um .env locamente direto na pasta do backend, caso queiram testar por ai, precisam adicionar o:
+
+SECRET_KEY=your-secret-key-here
+DEBUG=True
+ALLOWED_HOSTS=localhost,127.0.0.1
+
+SENTRY_DSN=https://your-sentry-dsn@sentry.io/your-project-id
+SENTRY_ENVIRONMENT=development
+
+na mesma altura do arquivo manage.py
