@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: agro_backend_dev
+    command: python manage.py runserver 0.0.0.0:8000
+    environment:
+      DJANGO_ENV: development
+      SECRET_KEY: django-insecure-dev-key
+      DEBUG: "True"
+      ALLOWED_HOSTS: localhost,127.0.0.1,backend
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+    networks:
+      - agro_network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: agro_frontend_dev
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://localhost:8000
+    depends_on:
+      - backend
+    networks:
+      - agro_network
+
+networks:
+  agro_network:
+    driver: bridge

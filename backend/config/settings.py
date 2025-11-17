@@ -151,14 +151,8 @@ USE_I18N = True
 
 USE_TZ = True
 
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.2/howto/static-files/
-
 STATIC_URL = 'static/'
-
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -172,7 +166,7 @@ CORS_ALLOWED_ORIGINS = [
 SENTRY_DSN = os.environ.get('SENTRY_DSN', '')
 SENTRY_ENVIRONMENT = os.environ.get('SENTRY_ENVIRONMENT', 'development')
 
-if SENTRY_DSN:
+if SENTRY_DSN and SENTRY_DSN != 'your-sentry-dsn-here':
     sentry_sdk.init(
         dsn=SENTRY_DSN,
         integrations=[
@@ -190,6 +184,8 @@ if SENTRY_DSN:
         
         before_send=lambda event, hint: event if SENTRY_ENVIRONMENT != 'development' or DEBUG else None,
     )
+else:
+    print("Sentry não configurado - Monitoramento desabilitado")
 
 LOGGING = {
     'version': 1,
