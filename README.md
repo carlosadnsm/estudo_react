@@ -2,12 +2,19 @@
 
 Este repositório contém a solução para o teste técnico utilizando **React** no front-end e **Django + Django REST Framework** no back-end.
 
+Para rodar o back (tem que estar na pasta)
+
+.\venv\Scripts\Activate
+python manage.py runserver
+
+Para rodar o front (tem que estar na pasta)
+
+npm run dev
+
 ---
 
-### 1. Como invalidar o Cache se os produtos forem atualizados?
+### 1. A aplicação React apresenta lentidão ao renderizar listas com mais de 500 produtos.
+Tarefas:
+Explique e implemente uma solução para melhorar a performance da renderização
 
-O cache é feito no método list do ProductViewSet. Quando chega um GET em /api/products, o código tenta ler a chave products:list no cache. Se existir, retorna o conteúdo diretamente. Se não existir, busca os produtos no banco, serializa, grava no cache com o TTL definido (10 minutos) e devolve a resposta. Assim os próximos GET usam o dado em cache até expirar.
-
-A invalidação acontece sempre que há escrita. Após criar, atualizar, atualizar parcialmente ou deletar um produto, o ViewSet chama cache.delete('products:list'). Isso remove a chave e garante que o próximo GET recalcule e regrave o cache atualizado.
-
-Para mudanças feitas fora da API (por exemplo, no Django /admin ou scripts), usa-se sinais do Django. Registre handlers para post_save e post_delete do modelo Product que executam cache.delete('products:list'). Esses signals devem ficar em products/signals.py e ser carregados no método ready do AppConfig (products/apps.py). Com isso, qualquer alteração em produtos, por qualquer caminho, derruba a chave e força a reconstrução no próximo GET.
+O DataTable que eu ja estava usando do PrimeReact ja tem virtualizacao interna com o virtualScroll, vou apenas alterar ele, pois se for refazer com React-Window, perderei as features da tabela que ja existem no PrimeReact, como ordencao, template... Alem do fato que a UX fica melhor pois o scroll infinito é mais natural e suave do que paginação, fora que fica um visual mais clean sem o footer da tabela. A combinação de cache backend com virtual scroll frontend é muito boa porque o backend com cache de dez minutos evita queries repetidas ao banco enquanto o frontend com virtual scroll renderiza apenas o necessário, resultando em experiência fluida mesmo com milhares de produtos.

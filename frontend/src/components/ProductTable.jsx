@@ -283,9 +283,12 @@ export default function ProductTable() {
       <DataTable
         value={products}
         loading={loading}
-        paginator
-        rows={10}
-        rowsPerPageOptions={[10, 20, 50]}
+        scrollable
+        scrollHeight="600px"
+        virtualScrollerOptions={{ 
+          itemSize: 46,
+          lazy: false
+        }}
         tableStyle={{ minWidth: '100%' }}
         emptyMessage="Nenhum produto encontrado."
         size="small"
