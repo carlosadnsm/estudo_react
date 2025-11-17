@@ -6,4 +6,7 @@ class ProductsConfig(AppConfig):
     name = 'products'   
 
     def ready(self):
-        import products.signals
+        try:
+            import products.signals
+        except Exception:
+            pass

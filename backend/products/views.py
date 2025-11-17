@@ -1,5 +1,3 @@
-from django.shortcuts import render
-
 from rest_framework import viewsets
 from .models import Product
 from .serializers import ProductSerializer
@@ -18,14 +16,6 @@ class ProductViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     CACHE_KEY = 'products:list'
-   
-    @receiver(post_save, sender=Product)
-    def invalidate_cache_on_save(sender, instance, **kwargs):
-        cache.delete(CACHE_KEY)
-
-    @receiver(post_delete, sender=Product)
-    def invalidate_cache_on_delete(sender, instance, **kwargs):
-        cache.delete(CACHE_KEY)
 
     def list(self, request, *args, **kwargs):
         data = cache.get(self.CACHE_KEY)
